@@ -1,11 +1,9 @@
 import { IsString } from 'class-validator';
 
 export class CreateUserDTO {
-    id: number;
+    id: string;
     @IsString()
-    username: string;
-    email: string;
-    password: string;
+    name: string;
     firstName?: string;
     lastName?: string;
     age?: number;
