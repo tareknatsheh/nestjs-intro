@@ -1,5 +1,6 @@
 export class User {
     id: string;
-    name: string;
+    username: string;
     isActive: boolean;
+    createdAt: Date;
 }

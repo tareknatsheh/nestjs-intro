@@ -1,11 +1,14 @@
-import { IsString } from 'class-validator';
+import { IsAlphanumeric, IsString, Max, MaxLength } from 'class-validator';
 
 export class CreateUserDTO {
-    id: string;
     @IsString()
-    name: string;
+    @IsAlphanumeric()
+    @MaxLength(10)
+    username: string;
+    @MaxLength(50)
     firstName?: string;
+    @MaxLength(50)
     lastName?: string;
+    @Max(100)
     age?: number;
-    isActive: boolean = true;
 }

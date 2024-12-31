@@ -6,16 +6,18 @@ import { User } from './entities/user.entity';
 @Injectable()
 export class UsersService {
     private users: User[] = [
-        { name: 'tarek', id: '1', isActive: true },
-        { name: 'ahmed', id: '2', isActive: true },
-        { name: 'mohamed', id: '3', isActive: true },
+        { username: 'tarek', id: '1', isActive: true, createdAt: new Date() },
+        { username: 'ahmed', id: '2', isActive: true, createdAt: new Date() },
+        { username: 'mohamed', id: '3', isActive: true, createdAt: new Date() },
     ];
 
-    findAll(name?: string): User[] {
-        if (name) {
-            const user = this.users.filter((user) => user.name === name);
+    findAll(username?: string): User[] {
+        if (username) {
+            const user = this.users.filter(
+                (user) => user.username === username,
+            );
             if (user.length === 0) {
-                throw new NotFoundException(`User ${name} was not found`);
+                throw new NotFoundException(`User ${username} was not found`);
             }
             return user;
         }
@@ -31,11 +33,16 @@ export class UsersService {
     }
 
     addOne(user: CreateUserDTO): { message: string; user: User } {
-        user.id = uuidv4();
-        this.users.push(user);
+        const newUser = {
+            ...user,
+            id: uuidv4(),
+            createdAt: new Date(),
+            isActive: true,
+        };
+        this.users.push(newUser);
         return {
             message: 'User added successfully',
-            user,
+            user: newUser,
         };
     }
 }
