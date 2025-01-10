@@ -6,7 +6,11 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true, // Automatically remove properties that do not match the DTO
+        }),
+    );
 
     const config = new DocumentBuilder()
         .setTitle('Nest API')

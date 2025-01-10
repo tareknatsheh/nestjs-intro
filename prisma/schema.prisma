@@ -21,7 +21,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Bookmark Bookmark[]
+  bookmarks Bookmark[]
 }
 
 model Bookmark {
