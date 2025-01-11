@@ -14,3 +14,13 @@ export class AuthDto {
     @MaxLength(15)
     name?: string;
 }
+
+export class LoginDto {
+    @IsEmail()
+    @IsNotEmpty()
+    email: string;
+
+    @IsString()
+    @IsNotEmpty()
+    password: string;
+}
