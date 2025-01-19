@@ -1,38 +1,19 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { CreateUserDTO } from './dto/create-user.dto';
-import { UsersService } from './users.service';
-import {
-    ApiCreatedResponse,
-    ApiNotFoundResponse,
-    ApiOkResponse,
-    ApiQuery,
-    ApiTags,
-} from '@nestjs/swagger';
-import { User } from './entities/user.entity';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from '@prisma/client';
 
 @ApiTags('users')
+@UseGuards(JwtGuard)
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+    constructor() {}
 
-    @ApiOkResponse({ type: User, isArray: true })
+    @ApiOkResponse()
     @ApiNotFoundResponse()
-    @ApiQuery({ name: 'name', required: false })
-    @Get()
-    getAllUsers(@Query('name') name?: string) {
-        return this.usersService.findAll(name);
-    }
-
-    @ApiOkResponse({ type: User })
-    @ApiNotFoundResponse()
-    @Get(':id')
-    getOneUser(@Param('id') id: string) {
-        return this.usersService.findById(id);
-    }
-
-    @ApiCreatedResponse({ type: User })
-    @Post()
-    createUser(@Body() user: CreateUserDTO) {
-        return this.usersService.addOne(user);
+    @Get('me')
+    getMe(@GetUser() user: Omit<User, 'password'>) {
+        return user;
     }
 }

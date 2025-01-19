@@ -7,13 +7,18 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthDto, LoginDto } from './dto';
 import * as argon from 'argon2';
-import { User } from 'src/types/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService) {}
-    async login(loginDto: LoginDto): Promise<User> {
+    constructor(
+        private prisma: PrismaService,
+        private jwt: JwtService,
+        private config: ConfigService,
+    ) {}
+    async login(loginDto: LoginDto): Promise<{ access_token: string }> {
         const user = await this.prisma.user.findUnique({
             where: {
                 email: loginDto.email,
@@ -30,14 +35,13 @@ export class AuthService {
         if (!isPassCorrect) {
             throw new ForbiddenException('Email or password is incorrect.');
         }
+
         return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
+            access_token: await this.signToken(user.id, user.email),
         };
     }
 
-    async register(authDto: AuthDto): Promise<User> {
+    async register(authDto: AuthDto): Promise<{ access_token: string }> {
         console.log(authDto);
 
         try {
@@ -50,17 +54,13 @@ export class AuthService {
                 },
             });
 
-            const newUser = {
-                id: user.id,
-                email: user.email,
-                name: user.name,
+            return {
+                access_token: await this.signToken(user.id, user.email),
             };
-
-            return newUser;
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
                 if (error.code === 'P2002') {
-                    throw new ForbiddenException('Credentials already exist');
+                    throw new ForbiddenException('Email already exist');
                 }
                 throw new InternalServerErrorException(
                     'Something went wrong with the database',
@@ -68,5 +68,16 @@ export class AuthService {
             }
             throw error;
         }
+    }
+
+    async signToken(id: string, email: string): Promise<string> {
+        const payload = {
+            sub: id,
+            email,
+        };
+        return this.jwt.signAsync(payload, {
+            expiresIn: '60m',
+            secret: this.config.get('JWT_SECRET'),
+        });
     }
 }
