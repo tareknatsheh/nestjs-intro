@@ -3,5 +3,5 @@ import { BookmarkService } from './bookmark.service';
 
 @Controller('bookmark')
 export class BookmarkController {
-  constructor(private readonly bookmarkService: BookmarkService) {}
+    constructor(private readonly bookmarkService: BookmarkService) {}
 }

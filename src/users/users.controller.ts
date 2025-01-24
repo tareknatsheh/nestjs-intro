@@ -1,7 +1,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { JwtGuard } from 'src/auth/guards/jwt.guard';
-import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { JwtGuard } from '../auth/guards/jwt.guard';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 import { User } from '@prisma/client';
 
 @ApiTags('users')
