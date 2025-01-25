@@ -8,6 +8,6 @@ export const GetUser = createParamDecorator(
             // example: `@GetUser('email') email: string`
             return request.user[data];
         }
-        return request.user;
+        return request.user; // this 'user' object is set in the JwtStrategy automatically
     },
 );

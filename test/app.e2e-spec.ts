@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as pactum from 'pactum';
-import { AuthDto, LoginDto } from '../src/auth/dto/auth.dto';
+import { AuthDto } from '../src/auth/dto/auth.dto';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('smoke test', () => {
@@ -31,13 +31,12 @@ describe('smoke test', () => {
         app.close();
     });
 
-    const dto: AuthDto = {
-        email: 'test@gmail.com',
-        password: '123123',
-        name: 'john',
-    };
-
     describe('Auth', () => {
+        const dto: AuthDto = {
+            email: 'test@gmail.com',
+            password: '123123',
+            name: 'john',
+        };
         describe('register', () => {
             it('should register new user', async () => {
                 return pactum
@@ -74,7 +73,7 @@ describe('smoke test', () => {
             });
         });
     });
-    describe('User', () => {
+    describe('Users', () => {
         it('should get /me', async () => {
             return pactum
                 .spec()
@@ -82,10 +81,21 @@ describe('smoke test', () => {
                 .withBearerToken('$S{userToken}')
                 .expectStatus(HttpStatus.OK);
         });
+
+        it('should update me user', async () => {
+            const editUserDto = { name: 'john doe' };
+            return pactum
+                .spec()
+                .patch('/users')
+                .withBody({ ...editUserDto })
+                .withBearerToken('$S{userToken}')
+                .expectStatus(HttpStatus.OK)
+                .expectBodyContains(editUserDto.name);
+        });
     });
     describe('Bookmarks', () => {
         it.todo('should create bookmark');
-        it.todo('should edit bookmark');
-        it.todo('should delete bookmark');
+        it.todo('should edit bookmark by id');
+        it.todo('should delete bookmark by id');
     });
 });
