@@ -4,6 +4,7 @@ import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as pactum from 'pactum';
 import { AuthDto } from '../src/auth/dto/auth.dto';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { CreateBookmarkDto } from '../src/bookmark/dto/create-bookmarrk.dto';
 
 describe('smoke test', () => {
     let app: INestApplication;
@@ -94,8 +95,52 @@ describe('smoke test', () => {
         });
     });
     describe('Bookmarks', () => {
-        it.todo('should create bookmark');
-        it.todo('should edit bookmark by id');
-        it.todo('should delete bookmark by id');
+        const bookmarkDto: CreateBookmarkDto = {
+            title: 'Google',
+            description: 'Search engine',
+            link: 'https://google.com',
+        };
+        it('should create bookmark', async () => {
+            return pactum
+                .spec()
+                .post('/bookmarks')
+                .withBody(bookmarkDto)
+                .withBearerToken('$S{userToken}')
+                .expectStatus(HttpStatus.CREATED)
+                .expectBodyContains(bookmarkDto.title)
+                .stores('bookmarkId', 'id');
+        });
+        it('should edit bookmark by id', async () => {
+            const editBookmarkDto = { title: 'Facebook' };
+            return pactum
+                .spec()
+                .patch('/bookmarks/$S{bookmarkId}')
+                .withBody(editBookmarkDto)
+                .withBearerToken('$S{userToken}')
+                .expectStatus(HttpStatus.OK)
+                .expectBodyContains(editBookmarkDto.title)
+                .expectBodyContains(bookmarkDto.description)
+                .expectBodyContains(bookmarkDto.link);
+        });
+        it('should delete bookmark by id', async () => {
+            await pactum
+                .spec()
+                .get('/bookmarks/$S{bookmarkId}')
+                .withBearerToken('$S{userToken}')
+                .expectStatus(HttpStatus.OK);
+
+            await pactum
+                .spec()
+                .delete('/bookmarks/$S{bookmarkId}')
+                .withBearerToken('$S{userToken}')
+                .expectStatus(HttpStatus.OK);
+
+            await pactum
+                .spec()
+                .get('/bookmarks/$S{bookmarkId}')
+                .withBearerToken('$S{userToken}')
+                .expectStatus(HttpStatus.NOT_FOUND)
+                .inspect();
+        });
     });
 });
