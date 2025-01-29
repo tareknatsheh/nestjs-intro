@@ -110,37 +110,89 @@ describe('smoke test', () => {
                 .expectBodyContains(bookmarkDto.title)
                 .stores('bookmarkId', 'id');
         });
-        it('should edit bookmark by id', async () => {
-            const editBookmarkDto = { title: 'Facebook' };
-            return pactum
-                .spec()
-                .patch('/bookmarks/$S{bookmarkId}')
-                .withBody(editBookmarkDto)
-                .withBearerToken('$S{userToken}')
-                .expectStatus(HttpStatus.OK)
-                .expectBodyContains(editBookmarkDto.title)
-                .expectBodyContains(bookmarkDto.description)
-                .expectBodyContains(bookmarkDto.link);
+        describe('Edit bookmark', () => {
+            it('should edit bookmark by id', async () => {
+                const editBookmarkDto = { title: 'Facebook' };
+                return pactum
+                    .spec()
+                    .patch('/bookmarks/$S{bookmarkId}')
+                    .withBody(editBookmarkDto)
+                    .withBearerToken('$S{userToken}')
+                    .expectStatus(HttpStatus.OK)
+                    .expectBodyContains(editBookmarkDto.title)
+                    .expectBodyContains(bookmarkDto.description)
+                    .expectBodyContains(bookmarkDto.link);
+            });
+
+            it('should not edit bookmark by id if not owner', async () => {
+                // Create a new bookmark
+                await pactum
+                    .spec()
+                    .post('/bookmarks')
+                    .withBody({ ...bookmarkDto, title: 'snapchat' })
+                    .withBearerToken('$S{userToken}')
+                    .expectStatus(HttpStatus.CREATED)
+                    .stores('bookmarkId', 'id');
+
+                const newUserDto: AuthDto = {
+                    email: 'newuser@email.com',
+                    password: '123123',
+                    name: 'new user',
+                };
+                await pactum
+                    .spec()
+                    .post('/auth/register')
+                    .withBody(newUserDto)
+                    .expectStatus(HttpStatus.CREATED)
+                    .stores('newUserToken', 'access_token');
+
+                const editBookmarkDto = { title: 'Twitter' };
+                return pactum
+                    .spec()
+                    .patch('/bookmarks/$S{bookmarkId}')
+                    .withBody(editBookmarkDto)
+                    .withBearerToken('$S{newUserToken}')
+                    .expectStatus(HttpStatus.FORBIDDEN);
+            });
         });
-        it('should delete bookmark by id', async () => {
-            await pactum
-                .spec()
-                .get('/bookmarks/$S{bookmarkId}')
-                .withBearerToken('$S{userToken}')
-                .expectStatus(HttpStatus.OK);
 
-            await pactum
-                .spec()
-                .delete('/bookmarks/$S{bookmarkId}')
-                .withBearerToken('$S{userToken}')
-                .expectStatus(HttpStatus.OK);
+        describe('Delete bookmark', () => {
+            it('should delete bookmark by id', async () => {
+                await pactum
+                    .spec()
+                    .get('/bookmarks/$S{bookmarkId}')
+                    .withBearerToken('$S{userToken}')
+                    .expectStatus(HttpStatus.OK);
 
-            await pactum
-                .spec()
-                .get('/bookmarks/$S{bookmarkId}')
-                .withBearerToken('$S{userToken}')
-                .expectStatus(HttpStatus.NOT_FOUND)
-                .inspect();
+                await pactum
+                    .spec()
+                    .delete('/bookmarks/$S{bookmarkId}')
+                    .withBearerToken('$S{userToken}')
+                    .expectStatus(HttpStatus.OK);
+
+                await pactum
+                    .spec()
+                    .get('/bookmarks/$S{bookmarkId}')
+                    .withBearerToken('$S{userToken}')
+                    .expectStatus(HttpStatus.NOT_FOUND);
+            });
+            it('should not delete bookmark by id if not owner', async () => {
+                // Create a new bookmark
+                await pactum
+                    .spec()
+                    .post('/bookmarks')
+                    .withBody({ ...bookmarkDto, title: 'instagram' })
+                    .withBearerToken('$S{userToken}')
+                    .expectStatus(HttpStatus.CREATED)
+                    .stores('bookmarkId', 'id')
+                    .inspect();
+
+                await pactum
+                    .spec()
+                    .delete('/bookmarks/$S{bookmarkId}')
+                    .withBearerToken('$S{newUserToken}')
+                    .expectStatus(HttpStatus.FORBIDDEN);
+            });
         });
     });
 });

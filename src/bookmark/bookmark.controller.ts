@@ -45,17 +45,22 @@ export class BookmarkController {
 
     @Patch(':id')
     async updateBookmark(
+        @GetUser('id') id: string,
         @Body() editBookmarkDto: EditBookmarkDto,
         @Param('id') bookmarkId: string,
     ) {
         return await this.bookmarkService.updateBookmark(
+            id,
             bookmarkId,
             editBookmarkDto,
         );
     }
 
     @Delete(':id')
-    async deleteBookmark(@Param('id') bookmarkId: string) {
-        return await this.bookmarkService.deleteBookmark(bookmarkId);
+    async deleteBookmark(
+        @GetUser('id') id: string,
+        @Param('id') bookmarkId: string,
+    ) {
+        return await this.bookmarkService.deleteBookmark(id, bookmarkId);
     }
 }
